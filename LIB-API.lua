@@ -1,5 +1,10 @@
 --report to our community if you find an error
 --https://discord.gg/WmsssRkgd2
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/Lorem-Ipsum-Familia/LIUDEX/refs/heads/main/LIB-API.lua"))()
+local a = {}
+function a.init(config)
+
+
 if getgenv().liudex and getgenv().ex  then
   warn("liudex env is already attached")
   return
@@ -1853,55 +1858,33 @@ for g,j in ipairs(ldxfenv) do
   getgenv()[j] = getfenv()[j]
 end
 
-local parallel = Instance.new("Actor")
-parallel.Name = "Safe Actor"
-Instance.new("LocalScript",parallel).Name = "Dummy"
-hooksignal(import.ReplicatedFirst.ChildAdded,function(child)
-  if child == parallel then return false end
-  return true, child
-end)
+if config and config.addParallel then
+  local parallel = Instance.new("Actor")
+  parallel.Name = "Safe Actor"
+  Instance.new("LocalScript",parallel).Name = "Dummy"
+  hooksignal(import.ReplicatedFirst.ChildAdded,function(child)
+    if child == parallel then return false end
+    return true, child
+  end)
 
-parallel.Parent = import.ReplicatedFirst
-run_on_actor(parallel,[[
-task.desynchronize()
-task.spawn(function()
-  task.wait(9e9)
-  print("Session End")
-end)
-]])
+  parallel.Parent = import.ReplicatedFirst
+  run_on_actor(parallel,[[
+  task.desynchronize()
+  task.spawn(function()
+    task.wait(9e9)
+    print("Session End")
+  end)
+  ]])
 
-function filternilinstance(from,tabl)
-    if from == "gc" then
-      local v1 = {}
-      for i, v in ipairs(getgc()) do
-          if typeof(v):lower() == "instance" and v.Parent == nil then
-            table.insert(v1,v)
-          end
-      end
-    elseif from == "debugid" then
-      for i,v in ipairs(getnilinstance()) do
-        if v:GetDebugId() == tabl.find then
-          return v
-        end
-      end
-    elseif from == "class" then
-      for i, v in ipairs(getnilinstance()) do
-          if v:IsA(tabl.find) then
-            table.insert(v1,v)
-          end
-      end 
-    elseif from == "hash" then 
-      for i, v in ipairs(getnilinstance()) do
-          if v:IsA(tabl.find) then
-            table.insert(v1,v)
-          end
-      end 
-    end   
+  task.wait()
+  task.defer(function()
+  parallel.Parent = getldxstorage().Parent
+elseif not config or not config.disableNotify then
+  liudex:Notify("LIUDEX API","https://asepthegoat.github.io/","rbxassetid://137460521289679")
 end
 
-task.wait()
-task.defer(function()
-parallel.Parent = getldxstorage().Parent
-task.wait(0.1)
-liudex:Notify("LIUDEX API","https://asepthegoat.github.io/","rbxassetid://137460521289679")
 end)
+
+
+end
+return a
