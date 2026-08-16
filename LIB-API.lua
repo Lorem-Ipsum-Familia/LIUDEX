@@ -337,14 +337,29 @@ function onspawn(func)
 	end)
 end
 
-function gototarget(to,tween,time)
+function gototarget(to,tween,speed)
 	if tween then
-    local char = getchar()
-	  local hrp = char.HumanoidRootPart
-	  local tween = TweenService
-    local info = TweenInfo.new(time, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0.1)
-    local tw = tween:Create(hrp, info, {CFrame = to.CFrame * CFrame.new(0, 10, 0)})
-    tw:Play()
+    local RunService = import.RunService
+    local rootPart = getchar():WaitForChild("HumanoidRootPart")
+
+    local startCFrame = rootPart.CFrame
+    local duration = (rootPart.Position - to).Magnitude / speed
+    local elapsed = 0 
+
+    tween = RunService.Heartbeat:Connect(function(deltaTime)
+        if tween then
+            elapsed = elapsed + deltaTime
+            local alpha = math.clamp(elapsed / duration, 0, 1)
+            rootPart.CFrame = startCFrame:Lerp(CFrame.new(to), alpha)
+            duration = (rootPart.Position - to).Magnitude / 250
+            elapsed = 0 
+            startCFrame = rootPart.CFrame
+            if alpha >= 1 then
+                tween:Disconnect()
+                ldx:Notify("Done")
+            end
+        end
+    end)
   else
     local char = getchar()
 	  local hrp = char.HumanoidRootPart
@@ -356,32 +371,61 @@ function dohttpscript(sc)
    loadstring(game:HttpGet(sc))()
 end
 
-function safefullname(obj)
-  --stolen from someone but i forgot from who and where i got this, 
-  --it used to suport executor hookmetamethod because some of them will crash if we use :GetFullName() because its a method
-    local function safe(name)
-        if name:match("^[%a_][%w_]*$") then
-            return name
+function formatLuaString() --skided from moon
+	local string = string
+	local gsub = string.gsub
+	local format = string.format
+	local char = string.char
+	local cleanTable = {['"'] = '\\"', ['\\'] = '\\\\'}
+	for i = 0,31 do
+		cleanTable[char(i)] = "\\"..format("%03d",i)
+	end
+	for i = 127,255 do
+		cleanTable[char(i)] = "\\"..format("%03d",i)
+	end
+
+	return function(str)
+		return gsub(str,"[\"\\\0-\31\127-\255]",cleanTable)
+	end
+end
+
+function isservice(ins)
+    return game:GetService(ins.ClassName) ~= nil
+end
+
+
+function safefullname(ins)
+    local gch,cins,path = false,ins,""
+    while true do
+        if cins == game then
+            path = "game" .. path
+            break
+        end
+        if cins.Parent:FindFirstChild(cins.Name) ~= cins then
+            for i,v in ipairs(cins.Parent:GetChildren()) do
+                if v == cins then
+                    cins = cins.Parent
+                    path = ":GetChildren()" .. "[" .. i .. "]" .. path
+                    break
+                end
+            end
+        elseif isservice(cins) then
+            indexName = ':GetService("'..cins.Name..'")'
+            path = indexName .. path
+            cins = cins.Parent
         else
-            return '["' .. name:gsub('"', '\\"') .. '"]'
+            local indexName = ""
+            if string.match(cins.Name,"^[%a_][%w_]*$") then
+                indexName = "." .. cins.Name
+            else
+                local cleanName = formatLuaString()(cins.Name)
+                indexName = '["'..cleanName..'"]'
+            end
+
+            path = indexName .. path
+            cins = cins.Parent
         end
     end
-
-    local path = safe(obj.Name)
-    local parent = obj.Parent
-
-    while parent and parent ~= game do
-        local current = safe(parent.Name)
-        
-        if path:sub(1,1) == "[" then
-            path = current .. path -- TANPA titik
-        else
-            path = current .. "." .. path
-        end
-        
-        parent = parent.Parent
-    end
-
     return path
 end
 
