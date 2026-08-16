@@ -83,6 +83,10 @@ function getclosurecallargs(closure, waitfor)
     end
 end
 
+function getaddress(obj)
+  return tostring(obj):split(": ")[2]
+end
+
 function waitrandom(mindelay,maxdelay)
   local min = mindelay or 0
   local max = maxdelay or 1
@@ -146,26 +150,7 @@ function setoffline() --lite version of liudex:StopGame()
   getplayer():Kick("Wait a Second for Set Offline...")
   task.wait(1)
   import.GuiService:ClearError()
-end
-
-local function greet()
-    return "Hello, World!"
-end
-
-print(greet()) -- "Hello, World!"
-
--- Find and change the string constant
-local constants = debug.getconstants(greet)
-for i, v in pairs(constants) do
-    if v == "Hello, World!" then
-        debug.setconstant(greet, i, "Goodbye, World!")
-        break
-    end
-end
-
-print(greet()) -- "Goodbye, World!"
-task.wait(2)
-print(greet())
+end 
 
 function limitsendkbps(int)
   import.NetworkClient:SetOutgoingKBPSLimit(int)
@@ -629,15 +614,6 @@ if not getgenv().LDXDATASERVICE then
     local EnableSendCountry = Instance.new("BindableEvent",values)
     EnableSendCountry.Name = "EnableSendCountry"
     EnableSendCountry:SetAttribute("Value",false)
-
-    pcall(function() local oldIndex
-    oldIndex = hookmetamethod(game, "__index", newcclosure(function(self, key)
-      if not checkcaller() and self == liudexex then
-        return nil
-      end
-      return oldIndex(self, key)
-    end))
-		end)
 end
 
 
@@ -1873,6 +1849,20 @@ end
 
 getgenv().isvipserver = isprivateserver
 
+local scriptchunk = debug.getinfo(1).short_src
+
+function isliudexcaller()
+    local level = 0
+    while level <= 50 do
+        if not debug.isvalidlevel(level) then
+            break
+        end
+        level = level + 1
+    end
+    local chunkname = debug.getinfo(level - 1).short_src
+    return (scriptchunk == chunkname or string.find(chunkname,"ldx"))
+end
+
 local ldxfenv = {
 		"uid","generatevarchar",
 		"run_on_func","run_on_method",
@@ -1891,7 +1881,8 @@ local ldxfenv = {
     "getrootpart","getdeviceid","getsessionid",
     "getclientid","isoffline","setnewchar","isnewclient","setcamfocus",
     "loadanim","limitsendkbps","isprivateserver","formatValue",
-    "getclosurecallargs","getmethods","getevents","getservices"
+    "getclosurecallargs","getmethods","getevents","getservices",
+	"getaddress"
 	} --regist to genv
 for g,j in ipairs(ldxfenv) do
   getgenv()[j] = getfenv()[j]
@@ -1942,6 +1933,32 @@ function filternilinstance(from,tabl)
       end 
     end   
 end
+
+setreadonly(debug,false)
+debug.getvalidlevel = newcclosure(function()
+    local level = 0
+    if debug.isvalidlevel then
+        while level <= 9e9 do
+            if not debug.isvalidlevel(level) then
+                break
+            end
+            level = level + 1
+        end
+        return level - 3
+    end
+    local yield = 0
+
+    while level <= 9e9 do
+        local a,b = pcall(function() getfenv(level + 1) end)
+        if not a then break end
+        level += 1
+        if yield >= 100 then tas.wait(0.2) yield = 0 end
+    end
+return level - 4
+end)
+setreadonly(debug,true)
+
+
 
 task.wait()
 task.defer(function()
