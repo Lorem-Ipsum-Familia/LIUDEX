@@ -336,7 +336,7 @@ function gototarget(to,tween,speed)
             elapsed = elapsed + deltaTime
             local alpha = math.clamp(elapsed / duration, 0, 1)
             rootPart.CFrame = startCFrame:Lerp(CFrame.new(to), alpha)
-            duration = (rootPart.Position - to).Magnitude / 250
+            duration = (rootPart.Position - to).Magnitude / speed
             elapsed = 0 
             startCFrame = rootPart.CFrame
             if alpha >= 1 then
