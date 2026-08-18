@@ -568,13 +568,10 @@ end
 
 local scriptenv 
 --setup liudex
+local liudexex = Instance.new("Folder")
+liudexex.Name = generatevarchar(20)
+liudexex.Parent = nil
 if not getgenv().LDXDATASERVICE then
-    
-    local lnstance = randomarray({"TerrainRegion","BindableFunction","SurfaceSelection"})
-    local liudexex = Instance.new(lnstance)
-    liudexex.Name = generatevarchar(50)
-    liudexex.Parent = nil
-
     local CloudService = Instance.new("Smoke")
     CloudService.Parent = liudexex
     CloudService.Name = "Request"
@@ -603,19 +600,8 @@ if not getgenv().LDXDATASERVICE then
         TrashService = trashbin,
         ConfigurationService = values
     }
-	
-	local TrashEnabled = Instance.new("BindableEvent",values)
-    TrashEnabled.Name = "TrashBin"
-    TrashEnabled:SetAttribute("Value",false)
-    
-    local DirClass = Instance.new("BindableFunction",values)
-    DirClass.Name = "DirClass"
-    DirClass:SetAttribute("Value",lnstance.ClassName)
-    local EnableSendCountry = Instance.new("BindableEvent",values)
-    EnableSendCountry.Name = "EnableSendCountry"
-    EnableSendCountry:SetAttribute("Value",false)
 end
-
+print(liudexex.Name)
 
 function isldxattached()
   return true
@@ -1853,7 +1839,7 @@ local scriptchunk = debug.getinfo(1).short_src
 
 function isliudexcaller()
     local level = 0
-    while level <= 50 do
+    while level <= 500 do
         if not debug.isvalidlevel(level) then
             break
         end
@@ -1861,77 +1847,6 @@ function isliudexcaller()
     end
     local chunkname = debug.getinfo(level - 1).short_src
     return (scriptchunk == chunkname or string.find(chunkname,"ldx"))
-end
-
-local ldxfenv = {
-		"uid","generatevarchar",
-		"run_on_func","run_on_method",
-		"insertasset","insertrbxmx",
-		"getchar","getplayer",
-		"getldxstorage","dohttpscript",
-		"prompt","joinCommunity",
-		"getPrompt","closeremotefunction",
-		"closeremoteevent","findPlayer",
-    "disconnect_all_signal","isldxattached",
-    "isscriptclosure","waituntil","checkfunction",
-    "dohttpscript","safefullname","download",
-    "gototarget","waitrandom","GetInstanceInfo",
-	  "safecall","callwithc","clonechar","setoffline",
-    "insertobjrbxmx","setclientid","gethumanoid",
-    "getrootpart","getdeviceid","getsessionid",
-    "getclientid","isoffline","setnewchar","isnewclient","setcamfocus",
-    "loadanim","limitsendkbps","isprivateserver","formatValue",
-    "getclosurecallargs","getmethods","getevents","getservices",
-	"getaddress"
-	} --regist to genv
-for g,j in ipairs(ldxfenv) do
-  getgenv()[j] = getfenv()[j]
-end
-
-local parallel = Instance.new("Actor")
-parallel.Name = "Safe Actor"
-Instance.new("LocalScript",parallel).Name = "Dummy"
-hooksignal(import.ReplicatedFirst.ChildAdded,function(child)
-  if child == parallel then return false end
-  return true, child
-end)
-
-parallel.Parent = import.ReplicatedFirst
-run_on_actor(parallel,[[
-task.desynchronize()
-task.spawn(function()
-  task.wait(9e9)
-  print("Session End")
-end)
-]])
-
-function filternilinstance(from,tabl)
-    if from == "gc" then
-      local v1 = {}
-      for i, v in ipairs(getgc()) do
-          if typeof(v):lower() == "instance" and v.Parent == nil then
-            table.insert(v1,v)
-          end
-      end
-    elseif from == "debugid" then
-      for i,v in ipairs(getnilinstance()) do
-        if v:GetDebugId() == tabl.find then
-          return v
-        end
-      end
-    elseif from == "class" then
-      for i, v in ipairs(getnilinstance()) do
-          if v:IsA(tabl.find) then
-            table.insert(v1,v)
-          end
-      end 
-    elseif from == "hash" then 
-      for i, v in ipairs(getnilinstance()) do
-          if v:IsA(tabl.find) then
-            table.insert(v1,v)
-          end
-      end 
-    end   
 end
 
 setreadonly(debug,false)
@@ -1958,11 +1873,59 @@ return level - 4
 end)
 setreadonly(debug,true)
 
+local ldxfenv = {
+		"uid","generatevarchar",
+		"run_on_func","run_on_method",
+		"insertasset","insertrbxmx",
+		"getchar","getplayer",
+		"getldxstorage","dohttpscript",
+		"prompt","joinCommunity",
+		"getPrompt","closeremotefunction",
+		"closeremoteevent","findPlayer",
+    "disconnect_all_signal","isldxattached",
+    "isscriptclosure","waituntil","checkfunction",
+    "dohttpscript","safefullname","download",
+    "gototarget","waitrandom","GetInstanceInfo",
+	  "safecall","callwithc","clonechar","setoffline",
+    "insertobjrbxmx","setclientid","gethumanoid",
+    "getrootpart","getdeviceid","getsessionid",
+    "getclientid","isoffline","setnewchar","isnewclient","setcamfocus",
+    "loadanim","limitsendkbps","isprivateserver","formatValue",
+    "getclosurecallargs","getmethods","getevents","getservices",
+	"getaddress"
+	} --regist to genv
+for g,j in ipairs(ldxfenv) do
+  getgenv()[j] = getfenv()[j]
+end
 
+--setup stuff
+local parallel = Instance.new("Actor")
+parallel.Name = "Safe Actor"
+Instance.new("LocalScript",parallel).Name = "Dummy"
+hooksignal(import.ReplicatedFirst.ChildAdded,function(child)
+  if child == parallel then return false end
+  return true, child
+end)
+
+parallel.Parent = import.ReplicatedFirst
+run_on_actor(parallel,[[
+task.desynchronize()
+task.spawn(function()
+  task.wait(9e9)
+  print("Session End")
+end)
+]])
 
 task.wait()
-task.defer(function()
-parallel.Parent = getldxstorage().Parent
-task.wait(0.1)
-liudex:Notify("LIUDEX API","https://asepthegoat.github.io/","rbxassetid://137460521289679")
+task.spawn(function()
+  while task.wait(200) do
+    getldxstorage().Parent.Name = generatevarchar(20)
+  end
 end)
+task.defer(function()
+  parallel.Parent = getldxstorage().Parent
+  task.wait(0.1)
+  liudex:Notify("LIB LOADED","https://asepthegoat.github.io/","rbxassetid://137460521289679")
+end)
+
+return true
