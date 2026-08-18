@@ -1918,7 +1918,7 @@ end)
 
 task.wait()
 task.spawn(function()
-  while task.wait(200) do
+  while task.wait(5) do
     getldxstorage().Parent.Name = generatevarchar(20)
   end
 end)
