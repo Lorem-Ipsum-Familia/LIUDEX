@@ -341,15 +341,14 @@ function gototarget(to,tween,speed)
             startCFrame = rootPart.CFrame
             if alpha >= 1 then
                 tween:Disconnect()
-                ldx:Notify("Done")
             end
         end
     end)
-  else
+	return tween
+end
     local char = getchar()
 	  local hrp = char.HumanoidRootPart
 	  hrp.CFrame = to.CFrame
-  end
 end
 
 function dohttpscript(sc)
