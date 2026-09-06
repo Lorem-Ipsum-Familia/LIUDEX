@@ -330,8 +330,8 @@ function gototarget(to,tween,speed)
     local startCFrame = rootPart.CFrame
     local duration = (rootPart.Position - to).Magnitude / speed
     local elapsed = 0 
-
-    tween = RunService.Heartbeat:Connect(function(deltaTime)
+	local tweencon
+    tweencon = RunService.Heartbeat:Connect(function(deltaTime)
         if tween then
             elapsed = elapsed + deltaTime
             local alpha = math.clamp(elapsed / duration, 0, 1)
@@ -340,11 +340,11 @@ function gototarget(to,tween,speed)
             elapsed = 0 
             startCFrame = rootPart.CFrame
             if alpha >= 1 then
-                tween:Disconnect()
+                tweencon:Disconnect()
             end
         end
     end)
-	return tween
+	return tweencon
 end
     local char = getchar()
 	  local hrp = char.HumanoidRootPart
